@@ -1,5 +1,7 @@
 # Airplay gateway over vlans
 
+
+
 Sources : 
   * https://www.packetmischief.ca/2012/09/20/airplay-vlans-and-an-open-source-solution/
   * https://linux.die.net/man/5/avahi-daemon.conf
@@ -39,16 +41,19 @@ Naming :
     * `$APPLETV_IF$` refers to the interface of AppleTv device from router point of view (not server POV)
 
 ## Preconditions
-  * An **AVAHI_VLAN_GATEWAY** must be configured on the server
-  * An **AIRPLAY_VLAN_GATEWAY** must be configured on the server
-  * If bridge are used in a the router :
-    * Vlan ids are not required to be the same between **AVAHI_VLAN_GATEWAY** and AppleTv nor **AIRPLAY_VLAN_GATEWAY** and Airplay consumers devices.
-      But
-      * **AVAHI_VLAN_GATEWAY** must be member of the same bridge than AppleTv device
-      * **AIRPLAY_VLAN_GATEWAY** must be member of the same bridge than Airplay consumers devices
-  * If no bridge are used
-    * **AVAHI_VLAN_GATEWAY** must be in the same vlan than the appleTv device
-    * **AIRPLAY_VLAN_GATEWAY** must be in the same vlan than Airplay consumers devices
+
+ * An **AVAHI_VLAN_GATEWAY** must be configured on the server
+ * An **AIRPLAY_VLAN_GATEWAY** must be configured on the server
+ * If bridge are used in a the router :
+
+   Vlan ids are not required to be the same between **AVAHI_VLAN_GATEWAY** and AppleTv nor **AIRPLAY_VLAN_GATEWAY** and Airplay consumers devices.
+    
+   But
+    * **AVAHI_VLAN_GATEWAY** must be member of the same bridge than AppleTv device
+    * **AIRPLAY_VLAN_GATEWAY** must be member of the same bridge than Airplay consumers devices
+ * If no bridge are used
+   * **AVAHI_VLAN_GATEWAY** must be in the same vlan than the appleTv device
+   * **AIRPLAY_VLAN_GATEWAY** must be in the same vlan than Airplay consumers devices
   
 ## Install & configure avahi daemon
 
@@ -118,38 +123,25 @@ $ avahi-browse -a -k
  * If you want to resolve entries, add `-r`
  
  
-## Routing point of view
-*Mainly when briges are used in router*
-### AppleTv <=> Avahi
- 
-Following traffic must be authorized in appleTv bridge
+## Firewall rules
+In case bridges are used, following traffic must be authorized in bridge filters :
+ * ARP to FF:FF:FF:FF:FF:FF mac address
+   * from `$AVAHI_VIF$` to `$APPLETV_IF$` *(Avahi gateway => AppleTv)*
+   * from  `$APPLETV_IF$` to `$AVAHI_VIF$` *(AppleTv => Avahi gateway)*
+   * from `$AIRPLAY_VIF$` to each `$AIRPLAY_CONS_IF$` *(Airplay gateway => Airplay consumers)*
+   * from  each `$AIRPLAY_CONS_IF$` to `$AIRPLAY_VIF$` *(Airplay consumers => Airplay gateway)*
 
- * ARP must be authorized 
-   * from `$AVAHI_VIF$` to each `$APPLETV_IF$` to FF:FF:FF:FF:FF:FF mac address
-   * from  each `$APPLETV_IF$` to `$AVAHI_VIF$` to FF:FF:FF:FF:FF:FF mac address
- * MDNS UDP traffic must be authorized 
-   * from `$AVAHI_VIF$` to `$APPLETV_IF$` from `*:5353` to `224.0.0.251:5353`
-   * from `$APPLETV_IF$` to `$AVAHI_VIF$` from `*:5353` to `224.0.0.251:5353`
- * IGMP traffic must be authorized 
-   * from `$AVAHI_VIF$` to `$APPLETV_IF$` to `224.0.0.22`
-   * from `$APPLETV_IF$` to `$AVAHI_VIF$` to `224.0.0.22`
- 
-### Airplay consumers <=> Avahi
-
-Following traffic must be authorized in airplay consumers devices bridge
-
-* ARP must be authorized 
-   * from `$AIRPLAY_VIF$` to each `$AIRPLAY_CONS_IF$` to FF:FF:FF:FF:FF:FF mac address
-   * from  each `$AIRPLAY_CONS_IF$` to `$AIRPLAY_VIF$` to FF:FF:FF:FF:FF:FF mac address
- * MDNS UDP traffic must be authorized 
-   * from `$AVAHI_VIF$` to `$AIRPLAY_CONS_IF$` from `*:5353` to `224.0.0.251:5353`
-   * from `$AIRPLAY_CONS_IF$` to `$AVAHI_VIF$` from `*:5353` to `224.0.0.251:5353`
- * IGMP traffic must be authorized 
-   * from `$AVAHI_VIF$` to `$AIRPLAY_CONS_IF$` to `224.0.0.22`
-   * from `$AIRPLAY_CONS_IF$` to `$AVAHI_VIF$` to `224.0.0.22`
- 
- 
- 
+Following traffic must be authorized in ip firewall
+ * MDNS (UDP) traffic  from `*:5353` to `224.0.0.251:5353`
+   * from `$AVAHI_VIF$` to `$APPLETV_IF$` *(Avahi gateway => AppleTv)*
+   * from `$APPLETV_IF$` to `$AVAHI_VIF$` *(AppleTv => Avahi gateway)*
+   * from `$AIRPLAY_VIF$` to each `$AIRPLAY_CONS_IF$` *(Airplay gateway => Airplay consumers)*
+   * from each `$AIRPLAY_CONS_IF$` to `$AIRPLAY_VIF$` *(Airplay consumers => Airplay gateway)*
+ * IGMP traffic to `224.0.0.22`
+   * from `$AVAHI_VIF$` to `$APPLETV_IF$` *(Avahi gateway => AppleTv)*
+   * from `$APPLETV_IF$` to `$AVAHI_VIF$` *(AppleTv => Avahi gateway)*
+   * from `$AIRPLAY_VIF$` to each `$AIRPLAY_CONS_IF$` *(Airplay gateway => Airplay consumers)*
+   * from each `$AIRPLAY_CONS_IF$` to `$AIRPLAY_VIF$` *(Airplay consumers => Airplay gateway)*
  
  ## Known issues
  
