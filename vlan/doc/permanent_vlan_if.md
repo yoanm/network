@@ -142,3 +142,12 @@ esac
 
 exit 0
 ```
+
+Think also about firewall in order to block traffic between servers interfaces.
+See 
+
+To block all forwarding between interfaces (that should be the case if server is not use as router) : 
+```bash
+# Block all forwarding traffic by default
+iptables -P FORWARD DROP
+```
