@@ -91,13 +91,54 @@ Listening on LPF/$VIF$/AA:BB:CC:DD:EE:FF
 Sending on   LPF/$VIF$/AA:BB:CC:DD:EE:FF
 Sending on   Socket/fallback
 DHCPDISCOVER on $VIF$ to 255.255.255.255 port 67 interval 4
-DHCPREQUEST of 192.168.0.20 on $VIF$ to 255.255.255.255 port 67
-DHCPOFFER of 192.168.0.20 from 192.168.0.254
-DHCPACK of 192.168.0.20 from 192.168.0.254
-bound to 192.168.0.20 -- renewal in 271 seconds.
+DHCPREQUEST of 192.168.$VID$.20 on $VIF$ to 255.255.255.255 port 67
+DHCPOFFER of 192.168.$VID$.20 from 192.168.$VID$.254
+DHCPACK of 192.168.$VID$.20 from 192.168.$VID$.254
+bound to 192.168.$VID$.20 -- renewal in 271 seconds.
 ```
 
 ### Shutdown
 ```bash
 $ ifdown $VIF$
+```
+
+## Routing
+*Add the required `$VIF$` routing table (see [there](../../routing/doc/force_reply_on_same_interface.md#create-a-routing-table))*
+
+In order to correctly route vlan traffic, create or update following scripts (and be sure they have execution flag) : 
+
+```
+#!/bin/sh
+#/etc/network/if-up.d/vlan
+
+case "$IFACE" in
+  $VIF$)
+    ip route add default via 192.168.$VID$.254 dev $VIF$ table $VIF$
+    ip rule add from 192.168.$VID$.0/24 table $VIF$
+  ;;
+# Ignore Others
+  *)
+    exit 0
+  ;;
+esac
+
+exit 0
+```
+
+```
+#!/bin/sh
+/etc/network/if-down.d/vlan 
+
+case "$IFACE" in
+  vlan690)
+    ip route delete default via 192.168.$VID$.254 dev $VIF$ table $VIF$
+    ip rule delete from 192.168.$VID$.0/24 table $VIF$
+  ;;
+# Ignore Others
+  *)
+    exit 0
+  ;;
+esac
+
+exit 0
 ```
