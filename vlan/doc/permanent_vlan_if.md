@@ -6,8 +6,13 @@
    * [Vlan with static ip assignation](#vlan-interface-static)
    
    
-Sources : https://wiki.ubuntu.com/vlan
+Sources :
+ * https://wiki.ubuntu.com/vlan
 
+See also : 
+ * [Prevent traffic forwarding from one interface to anothers](../../iptable/doc/drop_forwarding_between_interfaces.md)
+ * [Force reply on same interface than query](../../routing/doc/force_reply_on_same_interface.md)
+ 
 <a name="8021q-module"></a>
 ## 8021q module configuration
 **8021q module is required**
