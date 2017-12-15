@@ -71,3 +71,33 @@ iface $VIF$ inet static
     gateway 192.168.0.254  #<-- to update according to the you configuration
     vlan-raw-device $MIF$
 ```
+
+## interface up & down
+
+### Wake up 
+```bash
+$ ifup $VIF$
+```
+Will produce the following output (example taken from an interface configured with DHCP)
+```
+Set name-type for VLAN subsystem. Should be visible in /proc/net/vlan/config
+Added VLAN with VID == $VID$ to IF -:$MIF$:-
+Internet Systems Consortium DHCP Client 4.3.5
+Copyright 2004-2016 Internet Systems Consortium.
+All rights reserved.
+For info, please visit https://www.isc.org/software/dhcp/
+
+Listening on LPF/$VIF$/AA:BB:CC:DD:EE:FF
+Sending on   LPF/$VIF$/AA:BB:CC:DD:EE:FF
+Sending on   Socket/fallback
+DHCPDISCOVER on $VIF$ to 255.255.255.255 port 67 interval 4
+DHCPREQUEST of 192.168.0.20 on $VIF$ to 255.255.255.255 port 67
+DHCPOFFER of 192.168.0.20 from 192.168.0.254
+DHCPACK of 192.168.0.20 from 192.168.0.254
+bound to 192.168.0.20 -- renewal in 271 seconds.
+```
+
+### Shutdown
+```bash
+$ ifdown $VIF$
+```
