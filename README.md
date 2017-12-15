@@ -6,3 +6,4 @@ Network related documention/configuration/tips/tricks/....
  * [Routing](./routing)
  * [IpTable](./iptable)
  * [Avahi](./avahi)
+ * [Router](./router)
