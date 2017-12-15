@@ -1,3 +1,3 @@
 # Firewall
 
- * [Airplay](./firewall/doc/airplay.md)
+ * [Airplay](./doc/airplay.md)
