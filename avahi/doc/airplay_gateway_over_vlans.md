@@ -1,0 +1,156 @@
+# Airplay gateway over vlans
+
+Sources : 
+  * https://www.packetmischief.ca/2012/09/20/airplay-vlans-and-an-open-source-solution/
+  * https://linux.die.net/man/5/avahi-daemon.conf
+  
+See also :
+  * [How to add a permanent vlan interface on linux](../../vlan/doc/permanent_vlan_if.md)
+
+Naming :
+  * **"Avahi vlan interface"**, aka **AVAHI_VLAN_GATEWAY**
+    
+    The vlan interface that will be used by appleTv device to be registered on avahi
+
+    * `$AVAHI_VID$` refers to the vlanId of **AVAHI_VLAN_GATEWAY**
+    * `$AVAHI_VIF$` refers to the **AVAHI_VLAN_GATEWAY** interface itself
+    * `$AVAHI_VIF_IP$` refers to the **AVAHI_VLAN_GATEWAY** interface ip
+    
+  * **"Airplay vlan interface"**, aka **AIRPLAY_VLAN_GATEWAY**
+    
+    The vlan interface that will be used by Airplay consumers devices to query or be notified by avahi
+
+    * `$AIRPLAY_VID$` refers to the vlanId of **AIRPLAY_VLAN_GATEWAY**
+    * `$AIRPLAY_VIF$` refers to the **AIRPLAY_VLAN_GATEWAY** interface itself
+    * `$AIRPLAY_VIF_IP$` refers to the **AIRPLAY_VLAN_GATEWAY** interface ip
+    
+  * Airplay consumers devices
+    
+    Refers to any devices with airplay capability (usually apple devices like iphone/ipad/(i)mac/etc)
+    
+    * `$AIRPLAY_CONS_IP$` refers to IP of a specific airplay consumers device
+    * `$AIRPLAY_CONS_IF$` refers to the interface of a specific airplay consumers device from router point of view (not server POV)
+
+  * AppleTv device
+    
+    Refers to ... AppleTv device, quite logic :)
+    
+    * `$APPLETV_IP$` refers to IP of AppleTv device
+    * `$APPLETV_IF$` refers to the interface of AppleTv device from router point of view (not server POV)
+
+## Preconditions
+  * An **AVAHI_VLAN_GATEWAY** must be configured on the server
+  * An **AIRPLAY_VLAN_GATEWAY** must be configured on the server
+  * If bridge are used in a the router :
+    * Vlan ids are not required to be the same between **AVAHI_VLAN_GATEWAY** and AppleTv nor **AIRPLAY_VLAN_GATEWAY** and Airplay consumers devices.
+      But
+      * **AVAHI_VLAN_GATEWAY** must be member of the same bridge than AppleTv device
+      * **AIRPLAY_VLAN_GATEWAY** must be member of the same bridge than Airplay consumers devices
+  * If no bridge are used
+    * **AVAHI_VLAN_GATEWAY** must be in the same vlan than the appleTv device
+    * **AIRPLAY_VLAN_GATEWAY** must be in the same vlan than Airplay consumers devices
+  
+## Install & configure avahi daemon
+
+### Install
+```bash
+sudo apt-get install avahi-daemon
+```
+
+### Configure
+Then edit `/etc/avahi/avahi-daemon.conf` and update following values:
+```
+[server]
+allow-interfaces=$AVAHI_VIF$,$AIRPLAY_VIF$
+
+[reflector]
+enable-reflector=yes
+```
+
+#### Optional
+Use only IpV4 (in case is configured to drop ipv6 traffic for instance)
+```
+[server]
+use-ipv4=yes
+use-ipv6=no
+```
+
+Finally, restart avahi daemon : 
+```bash
+$ sudo systemctl restart avahi-daemon
+```
+In avahi logs, you should see something similar to : 
+```
+XXXXXXX XXX avahi-daemon[123456]: avahi-daemon 0.6.32 starting up.
+XXXXXXX XXX avahi-daemon[123456]: Successfully called chroot().
+XXXXXXX XXX avahi-daemon[123456]: Successfully dropped remaining capabilities.
+XXXXXXX XXX avahi-daemon[123456]: No service file found in /etc/avahi/services.
+XXXXXXX XXX avahi-daemon[123456]: Joining mDNS multicast group on interface $AVAHI_VIF$.IPv4 with address $AVAHI_VIF_IP$.
+XXXXXXX XXX avahi-daemon[123456]: New relevant interface $AVAHI_VIF$.IPv4 for mDNS.
+XXXXXXX XXX avahi-daemon[123456]: Joining mDNS multicast group on interface $AIRPLAY_VIF$.IPv4 with address $AIRPLAY_VIF_IP$.
+XXXXXXX XXX avahi-daemon[123456]: New relevant interface $AIRPLAY_VIF$.IPv4 for mDNS.
+XXXXXXX XXX avahi-daemon[123456]: Network interface enumeration completed.
+XXXXXXX XXX avahi-daemon[123456]: Registering new address record for AAAA::BBBB:CCCC:DDDD:EEEE on $AVAHI_VIF$.*.
+XXXXXXX XXX avahi-daemon[123456]: Registering new address record for $AVAHI_VIF_IP$ on $AVAHI_VIF$.IPv4.
+XXXXXXX XXX avahi-daemon[123456]: Registering new address record for $AIRPLAY_VIF_IP$ on $AIRPLAY_VIF$.IPv4.
+XXXXXXX XXX avahi-daemon[123456]: Server startup complete. Host name is XXX.local. Local service cookie is 677078695.
+```
+
+### Logging
+By default avahi log are on syslog log file.
+```bash
+$ tail -f /var/log/syslog | grep avahi
+```
+
+
+## Monitoring / Debugging
+Install `avahi-discover` packet :
+```bash
+$ sudo apt-get install avahi-discover
+```
+
+And then to follow discovering
+```bash
+$ avahi-browse -a -k
+```
+
+ * If you want to just list current entries, add `-c`
+ * If you want to resolve entries, add `-r`
+ 
+ 
+## Routing point of view
+*Mainly when briges are used in router*
+### AppleTv <=> Avahi
+ 
+Following traffic must be authorized in appleTv bridge
+
+ * ARP must be authorized 
+   * from `$AVAHI_VIF$` to each `$APPLETV_IF$` to FF:FF:FF:FF:FF:FF mac address
+   * from  each `$APPLETV_IF$` to `$AVAHI_VIF$` to FF:FF:FF:FF:FF:FF mac address
+ * MDNS UDP traffic must be authorized 
+   * from `$AVAHI_VIF$` to `$APPLETV_IF$` from `*:5353` to `224.0.0.251:5353`
+   * from `$APPLETV_IF$` to `$AVAHI_VIF$` from `*:5353` to `224.0.0.251:5353`
+ * IGMP traffic must be authorized 
+   * from `$AVAHI_VIF$` to `$APPLETV_IF$` to `224.0.0.22`
+   * from `$APPLETV_IF$` to `$AVAHI_VIF$` to `224.0.0.22`
+ 
+### Airplay consumers <=> Avahi
+
+Following traffic must be authorized in airplay consumers devices bridge
+
+* ARP must be authorized 
+   * from `$AIRPLAY_VIF$` to each `$AIRPLAY_CONS_IF$` to FF:FF:FF:FF:FF:FF mac address
+   * from  each `$AIRPLAY_CONS_IF$` to `$AIRPLAY_VIF$` to FF:FF:FF:FF:FF:FF mac address
+ * MDNS UDP traffic must be authorized 
+   * from `$AVAHI_VIF$` to `$AIRPLAY_CONS_IF$` from `*:5353` to `224.0.0.251:5353`
+   * from `$AIRPLAY_CONS_IF$` to `$AVAHI_VIF$` from `*:5353` to `224.0.0.251:5353`
+ * IGMP traffic must be authorized 
+   * from `$AVAHI_VIF$` to `$AIRPLAY_CONS_IF$` to `224.0.0.22`
+   * from `$AIRPLAY_CONS_IF$` to `$AVAHI_VIF$` to `224.0.0.22`
+ 
+ 
+ 
+ 
+ ## Known issues
+ 
+  * When appleTv is restarted, a counter is bumping just after the name
