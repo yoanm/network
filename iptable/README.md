@@ -1,3 +1,4 @@
 # Iptable
 
-* [Prevent traffic forwarding from one interface to anothers](./drop_forwarding_between_interfaces.md)
+* [Prevent traffic forwarding from one interface to anothers](./doc/drop_forwarding_between_interfaces.md)
+
