@@ -5,6 +5,9 @@ Sources :
  * https://unix.stackexchange.com/questions/4420/reply-on-same-interface-as-incoming
  * https://superuser.com/questions/325128/how-can-i-ensure-outbound-traffic-uses-the-same-interface-as-that-of-inbound-tra
  
+See also : 
+ * [Prevent traffic forwarding from one interface to anothers](../../iptable/doc/drop_forwarding_between_interfaces.md)
+ 
 ## Stategy
 
 Create a routing table for each interface
