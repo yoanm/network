@@ -144,7 +144,8 @@ exit 0
 ```
 
 Think also about firewall in order to block traffic between servers interfaces.
-See 
+
+See [Prevent traffic forwarding from one interface to anothers](../../iptable/doc/drop_forwarding_between_interfaces.md)
 
 To block all forwarding between interfaces (that should be the case if server is not use as router) : 
 ```bash
