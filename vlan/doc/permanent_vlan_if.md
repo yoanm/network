@@ -4,6 +4,9 @@
  * [Vlan interface configuration](#vlan-interface)
    * [Vlan with DHCP ip assignation](#vlan-interface-dhcp)
    * [Vlan with static ip assignation](#vlan-interface-static)
+   
+   
+Sources : https://wiki.ubuntu.com/vlan
 
 <a name="8021q-module"></a>
 ## 8021q module configuration
