@@ -13,6 +13,9 @@ Sources :
   
 See also :
   * [How to add a permanent vlan interface on linux](../../vlan/doc/permanent_vlan_if.md)
+  * [Force reply on same interface than query](../../routing/doc/force_reply_on_same_interface.md)
+  * [Force reply on same interface than query](../../routing/doc/force_reply_on_same_interface.md)
+  * [Incoming traffic from an interface wrongly outgoing to an another interface](../../routing/doc/wrong_traffic_forwarding_between_interfaces.md)
 
 Naming :
   * **"Avahi vlan interface"**, aka **AVAHI_VLAN_GATEWAY**
@@ -148,6 +151,36 @@ Following traffic must be authorized in ip firewall
    * from `$AIRPLAY_VIF$` to each `$AIRPLAY_CONS_IF$` *(Airplay gateway => Airplay consumers)*
    * from each `$AIRPLAY_CONS_IF$` to `$AIRPLAY_VIF$` *(Airplay consumers => Airplay gateway)*
  
- ## Known issues
+## Example Schema
+
+For this example : 
+ * **AVAHI_VLAN_GATEWAY**  
+   * `$AVAHI_VID$` is `199` 
+   * `$AVAHI_VIF$` is `vlan199` 
+   * `$AVAHI_VIF_IP$` is `192.168.100.99` 
+ * **AIRPLAY_VLAN_GATEWAY** 
+   * `$AIRPLAY_VID$` is `399`
+   * `$AIRPLAY_VIF$` is `vlan399`
+   * `$AIRPLAY_VIF_IP$` is `192.168.300.99`   
+ * Airplay consumers device 
+   * `$AIRPLAY_CONS_IP$` is `192.168.300.30` 
+   * `$AIRPLAY_CONS_IF$` is `vlan301`
+ * AppleTv device 
+   * `$APPLETV_IP$` is `192.168.100.10` 
+   * `$APPLETV_IF$` is `vlan101` 
+
+### network schema
+![Example network schema](./pic_schema_airplay_discovery_base.jpg?v1) 
+
+### Airplay discovery traffic
+![Example network schema](./pic_schema_airplay_discovery-appletv_discovery.jpg?v1) 
+
+### Airplay exchanges
+![Example network schema](./pic_schema_airplay_discovery-airplay_exchange.jpg?v1) 
+
+### Example of SSH traffic to server
+![Example network schema](./pic_schema_airplay_discovery-ssh_to_server_example.jpg?v1) 
+
+## Known issues
  
-  * When appleTv is restarted, a counter is bumping just after the name
+ * When appleTv is restarted, a counter is bumping just after the name
