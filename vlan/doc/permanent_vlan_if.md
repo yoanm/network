@@ -109,19 +109,63 @@ $ ifdown $VIF$
 In order to correctly route vlan traffic, create or update following scripts (and be sure they have execution flag) : 
 
 ```bash
-#!/bin/sh
-#/etc/network/if-up.d/vlan
+#!/bin/bash
+#/etc/network/if-up.d/route
 
-ADD_ROUTE=0
+function ipRouteAddRoutingTableDefaultRoute {
+    GATEWAY_IP=$1
+    INTERFACE=$2
+    ROUTING_TABLE=$3
 
-GATEWAY_IP=0
-NETWORK_IP=0
+    echo "ROUTING : Adding default route via '$GATEWAY_IP' on '$INTERFACE' for routing table '$ROUTING_TABLE'"
+    ip route add default via "$GATEWAY_IP" dev "$INTERFACE" table "$ROUTING_TABLE"
+}
+
+function ipRuleAddLookupRTWhenFrom {
+    FROM=$1
+    ROUTING_TABLE=$2
+
+    echo "ROUTING : Adding rule to lookup on routing table '$ROUTING_TABLE' when from '$FROM'"
+    ip rule add from "$FROM" table "$ROUTING_TABLE"
+}
+
+function ipRuleAddLookupRTWhenTo {
+    TO=$1
+    ROUTING_TABLE=$2
+
+    echo "ROUTING : Adding rule to lookup on routing table '$ROUTING_TABLE' when to '$TO'"
+    ip rule add to "$TO" table "$ROUTING_TABLE"
+}
+
+function addVlanRouting {
+    INTERFACE=$1
+    GATEWAY_IP=$2
+    NETWORK_IP=$3
+    ROUTING_TABLE=$4
+
+    ipRouteAddRoutingTableDefaultRoute "$GATEWAY_IP" "$INTERFACE" "$ROUTING_TABLE"
+
+    ipRuleAddLookupRTWhenFrom "$NETWORK_IP" "$ROUTING_TABLE"
+}
+
+function addMasterInterfaceRouting {
+    INTERFACE=$1
+    GATEWAY_IP="192.168.0.254"
+    NETWORK_IP="192.168.0.0/24"
+    ROUTING_TABLE="lan"
+
+    ipRouteAddRoutingTableDefaultRoute "$GATEWAY_IP" "$INTERFACE" "$ROUTING_TABLE"
+
+    ipRuleAddLookupRTWhenFrom "$NETWORK_IP" "$ROUTING_TABLE"
+    ipRuleAddLookupRTWhenTo "$NETWORK_IP" "$ROUTING_TABLE"
+}
 
 case "$IFACE" in
   $VIF$)
-    ADD_ROUTE=1
-    GATEWAY_IP="192.168.$VID$.254"
-    NETWORK_IP="192.168.$VID$.0/24"
+    addVlanRouting "$IFACE" "192.168.$VID$.254" "192.168.$VID$.0/24" "$IFACE"
+  ;;
+  eth0)
+    addMasterInterfaceRouting "$IFACE"
   ;;
 # Ignore Others
   *)
@@ -129,31 +173,68 @@ case "$IFACE" in
   ;;
 esac
 
-if [ $ADD_ROUTE = 1 ]; then
-    echo "VLAN - ROUTING : Adding default route via '$GATEWAY_IP' for '$IFACE' and routing table '$IFACE'"
-    ip route add default via "$GATEWAY_IP" dev "$IFACE" table "$IFACE"
-
-    echo "VLAN - ROUTING : Adding rule from '$NETWORK_IP' to lookup on routing table '$IFACE'"
-    ip rule add from "$NETWORK_IP" table "$IFACE"
-fi
 
 exit 0
 ```
 
 ```bash
-#!/bin/sh
-#/etc/network/if-post-down.d/vlan2
+#!/bin/bash
+#/etc/network/if-post-down.d/route
 
-DELETE_ROUTE=0
+function ipRouteDeleteRoutingTableDefaultRoute {
+    GATEWAY_IP=$1
+    INTERFACE=$2
+    ROUTING_TABLE=$3
 
-GATEWAY_IP=0
-NETWORK_IP=0
+    echo "ROUTING : Deleting default route via '$GATEWAY_IP' on '$INTERFACE' for routing table '$ROUTING_TABLE'"
+    ip route delete default via "$GATEWAY_IP" dev "$INTERFACE" table "$ROUTING_TABLE"
+}
+
+function ipRuleDeleteLookupRTWhenFrom {
+    FROM=$1
+    ROUTING_TABLE=$2
+
+    echo "ROUTING : Deleting rule to lookup on routing table '$ROUTING_TABLE' when from '$FROM'"
+    ip rule delete from "$FROM" table "$ROUTING_TABLE"
+}
+
+function ipRuleDeleteLookupRTWhenTo {
+    TO=$1
+    ROUTING_TABLE=$2
+
+    echo "ROUTING : Deleting rule to lookup on routing table '$ROUTING_TABLE' when to '$TO'"
+    ip rule delete to "$TO" table "$ROUTING_TABLE"
+}
+
+function deleteVlanRouting {
+    INTERFACE=$1
+    GATEWAY_IP=$2
+    NETWORK_IP=$3
+    ROUTING_TABLE=$4
+
+    ipRouteDeleteRoutingTableDefaultRoute "$GATEWAY_IP" "$INTERFACE" "$ROUTING_TABLE"
+
+    ipRuleDeleteLookupRTWhenFrom "$NETWORK_IP" "$ROUTING_TABLE"
+}
+
+function deleteMasterInterfaceRouting {
+    INTERFACE=$1
+    GATEWAY_IP="192.168.0.254"
+    NETWORK_IP="192.168.0.0/24"
+    ROUTING_TABLE="lan"
+
+    ipRouteDeleteRoutingTableDefaultRoute "$GATEWAY_IP" "$INTERFACE" "$ROUTING_TABLE"
+
+    ipRuleDeleteLookupRTWhenFrom "$NETWORK_IP" "$ROUTING_TABLE"
+    ipRuleDeleteLookupRTWhenTo "$NETWORK_IP" "$ROUTING_TABLE"
+}
 
 case "$IFACE" in
   $VIF$)
-    DELETE_ROUTE=1
-    GATEWAY_IP="192.168.$VID$.254"
-    NETWORK_IP="192.168.$VID$.0/24"
+    deleteVlanRouting "$IFACE" "192.168.$VID$.254" "192.168.$VID$.0/24" "$IFACE"
+  ;;
+  eth0)
+    deleteMasterInterfaceRouting "$IFACE"
   ;;
 # Ignore Others
   *)
@@ -161,13 +242,6 @@ case "$IFACE" in
   ;;
 esac
 
-if [ $DELETE_ROUTE = 1 ]; then
-    echo "VLAN - ROUTING : Deleting default route via '$GATEWAY_IP' for '$IFACE' and routing table '$IFACE'"
-    ip route delete default via "$GATEWAY_IP" dev "$IFACE" table "$IFACE"
-
-    echo "VLAN - ROUTING : Deleting rule from '$NETWORK_IP' to lookup on routing table '$IFACE'"
-    ip rule delete from "$NETWORK_IP" table "$IFACE"
-fi
 
 exit 0
 ```
