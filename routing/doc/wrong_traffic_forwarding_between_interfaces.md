@@ -2,7 +2,7 @@
 
 Example : 
 
-![Schema](./pic_routing_between_interfaces_issue.jpg) 
+![Schema](./pic_routing_between_interfaces_issue.jpg?raw=true) 
 
 * Default network :
    * network IP: `192.168.0.0/24`
