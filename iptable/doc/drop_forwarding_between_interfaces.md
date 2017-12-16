@@ -1,7 +1,7 @@
 # Prevent traffic forwarding from one interface to anothers
 
 See also : 
- * [Prevent traffic forwarding from one interface to anothers](../../iptable/doc/drop_forwarding_between_interfaces.md)
+ * [Incoming traffic from an interface wrongly outgoing to an another interface](../../routing/doc/wrong_traffic_forwarding_between_interfaces.md)
  * [Force reply on same interface than query](../../routing/doc/force_reply_on_same_interface.md)
 
 ## Strategy
