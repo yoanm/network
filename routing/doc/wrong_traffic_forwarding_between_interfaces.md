@@ -13,10 +13,10 @@ Example :
  * Server
    * eth0 interface is on default network (IP: `192.168.0.10`). 
      * *On Schema, traffic that go to or come from that interface is described by **C** arrow*
-     * :warning: By default, your system will add a routing rule saying that all packet from `192.168.0.0/24` will go through **eth0 interface**
+     * :warning: By default, your system will add a routing rule saying that all packet to `192.168.0.0/24` will go through **eth0 interface**
    * vlan60 interface is on vlan60 network (IP: `192.168.60.20`)
      * *On Schema, traffic that go to or come from that interface is described by **B** arrow*
-     * :warning: By default, your system will add a routing rule saying that all packet from `192.168.60.0/24` will go through **vlan60 interface**
+     * :warning: By default, your system will add a routing rule saying that all packet to `192.168.60.0/24` will go through **vlan60 interface**
  * Client PC is on vlan60 network (IP: `192.168.60.30`)
      * *On Schema, traffic that go to or come from that interface is described by **A** arrow*
 
