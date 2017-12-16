@@ -121,6 +121,14 @@ function ipRouteAddRoutingTableDefaultRoute {
     ip route add default via "$GATEWAY_IP" dev "$INTERFACE" table "$ROUTING_TABLE"
 }
 
+function ipRouteAddToInterface {
+    TO=$1
+    INTERFACE=$2
+    ROUTING_TABLE=$3
+
+    echo "ROUTING : Adding '$INTERFACE' as default for '$TO' for routing table '$ROUTING_TABLE'"
+    ip route add "$TO" dev "$INTERFACE" table "$ROUTING_TABLE"
+}
 function ipRuleAddLookupRTWhenFrom {
     FROM=$1
     ROUTING_TABLE=$2
@@ -148,6 +156,18 @@ function addVlanRouting {
     ipRuleAddLookupRTWhenFrom "$NETWORK_IP" "$ROUTING_TABLE"
 }
 
+function addAvahiVlanRouting {
+    INTERFACE=$1
+    GATEWAY_IP=$2
+    NETWORK_IP=$3
+    ROUTING_TABLE=$4
+    MASTER_INTERFACE=$5
+
+    addVlanRouting "$INTERFACE" "$GATEWAY_IP" "$NETWORK_IP" "$ROUTING_TABLE"
+
+    ipRouteAddToInterface "$NETWORK_IP" "$MASTER_INTERFACE" "main"
+}
+
 function addMasterInterfaceRouting {
     INTERFACE=$1
     GATEWAY_IP="192.168.0.254"
@@ -163,6 +183,8 @@ function addMasterInterfaceRouting {
 case "$IFACE" in
   $VIF$)
     addVlanRouting "$IFACE" "192.168.$VID$.254" "192.168.$VID$.0/24" "$IFACE"
+# in case vlan is used for avahi :
+#    addAvahiVlanRouting "$IFACE" "192.168.$VID$.254" "192.168.$VID$.0/24" "$IFACE" "eth0"
   ;;
   eth0)
     addMasterInterfaceRouting "$IFACE"
@@ -190,6 +212,14 @@ function ipRouteDeleteRoutingTableDefaultRoute {
     ip route delete default via "$GATEWAY_IP" dev "$INTERFACE" table "$ROUTING_TABLE"
 }
 
+function ipRouteDeleteToInterface {
+    TO=$1
+    INTERFACE=$2
+    ROUTING_TABLE=$3
+
+    echo "ROUTING : Deleting '$INTERFACE' as default for '$TO' for routing table '$ROUTING_TABLE'"
+    ip route delete "$TO" dev "$INTERFACE" table "$ROUTING_TABLE"
+}
 function ipRuleDeleteLookupRTWhenFrom {
     FROM=$1
     ROUTING_TABLE=$2
@@ -217,6 +247,18 @@ function deleteVlanRouting {
     ipRuleDeleteLookupRTWhenFrom "$NETWORK_IP" "$ROUTING_TABLE"
 }
 
+function deleteAvahiVlanRouting {
+    INTERFACE=$1
+    GATEWAY_IP=$2
+    NETWORK_IP=$3
+    ROUTING_TABLE=$4
+    MASTER_INTERFACE=$5
+
+    deleteVlanRouting "$INTERFACE" "$GATEWAY_IP" "$NETWORK_IP" "$ROUTING_TABLE"
+
+    ipRouteDeleteToInterface "$NETWORK_IP" "$MASTER_INTERFACE" "main"
+}
+
 function deleteMasterInterfaceRouting {
     INTERFACE=$1
     GATEWAY_IP="192.168.0.254"
@@ -232,6 +274,8 @@ function deleteMasterInterfaceRouting {
 case "$IFACE" in
   $VIF$)
     deleteVlanRouting "$IFACE" "192.168.$VID$.254" "192.168.$VID$.0/24" "$IFACE"
+# in case vlan is used for avahi :
+#    deleteAvahiVlanRouting "$IFACE" "192.168.$VID$.254" "192.168.$VID$.0/24" "$IFACE" "eth0"
   ;;
   eth0)
     deleteMasterInterfaceRouting "$IFACE"
