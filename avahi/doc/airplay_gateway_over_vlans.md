@@ -4,7 +4,7 @@ Document describe how to set up a MNDS gateway between two vlans. It use airplay
 
 **Disclaimer**
 
- * Unfortunately, i didn't found any easy solutions to filter MNDS services (e.g. filter only airplay or printer discovery).
+ * Unfortunately, i didn't found any easy solutions to filter MDNS services (e.g. filter only airplay or printer discovery).
  * This document is only about airplay discovery, for airplay exchanges see [this document](../../router/firewall/doc/airplay.md)
 
 Sources : 
