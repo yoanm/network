@@ -294,7 +294,7 @@ Think also about firewall in order to block traffic between servers interfaces.
 
 See [Prevent traffic forwarding from one interface to anothers](../../iptable/doc/drop_forwarding_between_interfaces.md)
 
-To block all forwarding between interfaces (that should be the case if server is not use as router) : 
+To block all forwarding between interfaces (that should be the case if server is not used as router) : 
 ```bash
 # Block all forwarding traffic by default
 iptables -P FORWARD DROP
