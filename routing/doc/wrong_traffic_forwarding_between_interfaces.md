@@ -64,4 +64,4 @@ As **Client PC** IP is included in `192.168.60.0/24` network, outgoing packets w
 
 Rules regarding `lan` table will not be applied as packets don't come from `192.168.0.0/24`, they come from **Server** itsef.
 
-A solution could be to add a rule saying that all packet must go through **eth0 interface**, but I cannot do else other interfaces will not be able to send traffic anymore, they will only be able to receive traffic (and so, avahi will be broken for instance).
+A solution could be to add a rule saying that all packet must go through **eth0 interface**, but I cannot do that else other interfaces will not be able to send traffic anymore, they will only be able to receive traffic (and so, avahi will be broken for instance).
