@@ -67,9 +67,9 @@ iface $VIF$ inet dhcp
 #/etc/network/interfaces.d/$VIF$
 auto $VIF$
 iface $VIF$ inet static
-    address 192.168.0.20   #<-- to update according to the you configuration
-    netmask 255.255.255.0  #<-- to update according to the you configuration
-    gateway 192.168.0.254  #<-- to update according to the you configuration
+    address 192.168.0.20   #<-- to update according to your configuration
+    netmask 255.255.255.0  #<-- to update according to your configuration
+    gateway 192.168.0.254  #<-- to update according to your configuration
     vlan-raw-device $MIF$
 ```
 
